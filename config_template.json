@@ -1,0 +1,25 @@
+{
+  "config":{
+    "report_interval_second": 300
+  },
+  "Yeelink":{
+    "on": false,
+    "api_key": "dad116b2e65c306a1081c519a7253b1b"
+  },
+  "InitialState":{
+    "on": false,
+    "bucket_name": "",
+    "bucket_key": "",
+    "access_key": ""
+  },
+  "MySQL":{
+    "on":false,
+    "host": "N/A",
+    "port": 16055,
+    "user": "N/A",
+    "password": "N/A",
+    "db": "N/A",
+    "charaset": "uff8mb4",
+    "table": "N/A"
+  }
+}
