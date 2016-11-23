@@ -1,14 +1,15 @@
 ﻿#!/usr/bin/python3
 '''
-- Author: Yunfei Robotics Lab
+- Author: Yunfei Robotics Laboratory
+- Website: http://www.yfworld.com
 - Version: v0.2
-- Date updated: 04 Nov 2016
+- Updated: 23 Nov 2016
 - Note:
-  This program gathers sensory data from HTU21D on a Raspberry Pi and report it
-  to MySQL, Yeelink and/or Inital State. HTU21D is a temperature + humidity sen-
-  sor and it is connected to RPi by iic.
+  This code collects environmental data from a HTU21D sensor on a Raspberry Pi
+  and report it to MySQL, Yeelink and/or Inital State. HTU21D is a temperature
+  and humidity sensor. It is connected to RPi via I2C_1 bus.
 - Credit:
-  The IIC and HTU21D drivers are based on code from Adafruit.
+  The IIC and HTU21D drivers are based on code provided by Adafruit.
 '''
 
 import time, datetime, json, http.client, htu21d
@@ -105,14 +106,14 @@ if __name__ == "__main__":
         print("Humid: %.2f %% rH" % humi)
 
         # report to remote services
-        if yeelink_cfg["on"]:
+        if yeelink_cfg["enable"]:
             yeelink_report(st, temp, humi, yeelink_cfg)
 
-        if initstate_cfg["on"]:
+        if initstate_cfg["enable"]:
             initial_report(temp, humi, initstate_cfg)
 
-        if mysql_cfg["on"]:
+        if mysql_cfg["enable"]:
             mysql_commit("%.2f" % temp, "%.2f" % humi, mysql_cfg)
 
         # sleep for 'report_interval_second'
-        time.sleep(system_cfg["report_interval_second"])
+        time.sleep(system_cfg["report_interval_sec"])
