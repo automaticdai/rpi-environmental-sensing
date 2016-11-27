@@ -6,9 +6,14 @@ This is a personal indoor weather station that uses Raspberry Pi and HTU21D to s
 HTU21D is a temperature + humidity sensor and it is connected to RPi by iic.
 
 
+## Requirement
+- python3
+
+
 ## Usage
-```cp config_template.json config.json```
+1. ```cp config_template.json config.json```
 
-```vim config.json```
+2. Change configuration file and save: ```vim config.json```
 
-`````` 
+3. Run script: ```python3 main.py```
+``````

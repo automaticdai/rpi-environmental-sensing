@@ -2,20 +2,20 @@
 '''
 - Author: Yunfei Robotics Laboratory
 - Website: http://www.yfworld.com
-- Version: v0.2
-- Updated: 23 Nov 2016
+- Version: v0.3
+- Updated: 26 Nov 2016
 - Note:
   This code collects environmental data from a HTU21D sensor on a Raspberry Pi
   and report it to MySQL, Yeelink and/or Inital State. HTU21D is a temperature
   and humidity sensor. It is connected to RPi via I2C_1 bus.
 - Credit:
-  The IIC and HTU21D drivers are based on code provided by Adafruit.
+  The IIC and HTU21D drivers are based on code from Adafruit.
 '''
 
 import time, datetime, json, http.client, htu21d
 from pprint import pprint
 
-SENSOR_ID = 1
+sensor_id = 0
 
 def initial_report(temp, humi, config):
     from ISStreamer.Streamer import Streamer
@@ -27,7 +27,7 @@ def initial_report(temp, humi, config):
     print("Initial State Committed")
 
 
-def mysql_commit(s_temp, s_humid, config):
+def mysql_commit(temp, humid, config):
     import pymysql.cursors
     # Connect to the database
     connection = pymysql.connect(host=config['host'],
@@ -41,7 +41,9 @@ def mysql_commit(s_temp, s_humid, config):
         with connection.cursor() as cursor:
             # Create a new record
             sql = "INSERT INTO `WEATHER_MEASUREMENT` (`SENSOR_ID`, `IN_TEMP`, `IN_HUMID`) VALUES (%s, %s, %s)"
-            cursor.execute(sql, (SENSOR_ID, s_temp, s_humid))
+            s_temp = "%.2f" % temp
+            s_humid = "%.2f" % humid
+            cursor.execute(sql, (sensor_id, s_temp, s_humid))
 
         # connection is not autocommit by default. So you must commit to save
         # your changes.
@@ -57,20 +59,23 @@ def yeelink_report(st, temp, humi, config):
     params_temp = "{\"timestamp\":\"%s\",\"value\":%.2f}" % (st, temp)
     params_humi = "{\"timestamp\":\"%s\",\"value\":%.2f}" % (st, humi)
 
-    with http.client.HTTPConnection("api.yeelink.net", timeout=10) as conn:
-        conn.request("POST", "/v1.0/device/1869/sensor/387420/datapoints", params_temp, headers)
+    try:
+        conn = http.client.HTTPConnection("api.yeelink.net", timeout=10)
+        conn.request("POST", config["temperature_url"], params_temp, headers)
         response = conn.getresponse()
         print(response.status, response.reason)
         data = response.read()
         print(data)
 
-        conn.request("POST", "/v1.0/device/1869/sensor/387421/datapoints", params_humi, headers)
+        conn.request("POST", config["humidity_url"], params_humi, headers)
         response = conn.getresponse()
         print(response.status, response.reason)
         data = response.read()
         print(data)
 
         conn.close()
+    except:
+        pass
 
 
 if __name__ == "__main__":
@@ -78,42 +83,52 @@ if __name__ == "__main__":
     with open('config.json') as config_file:
         config = json.load(config_file)
 
+        system_cfg = config["config"]
+        sensor_id = system_cfg["sensor_id"]
+
         yeelink_cfg = config["Yeelink"]
         initstate_cfg = config["InitialState"]
         mysql_cfg = config["MySQL"]
-        system_cfg = config["config"]
 
-        pprint(config)
-        pprint(yeelink_cfg)
-        pprint(initstate_cfg)
-        pprint(mysql_cfg)
+        # print configuration
+        #pprint(config)
+        #pprint(yeelink_cfg)
+        #pprint(initstate_cfg)
+        #pprint(mysql_cfg)
 
     # create a sensor object
     sensor = htu21d.HTU21D()
 
     # infinite loop goes here
     while (True):
-        # read sensor data from HTU21D sensor
-        temp = sensor.read_temperature()
-        humi = sensor.read_humidity()
+        print(">>>>>>>>>>")
 
         # print current time stamp and sensor data
-        print("----------")
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
         print(st)
-        print("Temp: %.2f C" % temp)
-        print("Humid: %.2f %% rH" % humi)
+
+        # read sensor data from HTU21D sensor
+        temp = sensor.read_temperature()
+        humi = sensor.read_humidity()
+        print("Temperature: %.2f C" % temp)
+        print("Humidity: %.2f %% rH" % humi)
 
         # report to remote services
-        if yeelink_cfg["enable"]:
+        if (yeelink_cfg["enable"] == True):
             yeelink_report(st, temp, humi, yeelink_cfg)
 
-        if initstate_cfg["enable"]:
+        if (initstate_cfg["enable"] == True):
             initial_report(temp, humi, initstate_cfg)
 
-        if mysql_cfg["enable"]:
-            mysql_commit("%.2f" % temp, "%.2f" % humi, mysql_cfg)
+        if (mysql_cfg["enable"] == True):
+            mysql_commit(temp, humi, mysql_cfg)
 
-        # sleep for 'report_interval_second'
-        time.sleep(system_cfg["report_interval_sec"])
+        print("<<<<<<<<<<")
+
+        # report once or periodically is defined by config 'report_only_once'
+        if (system_cfg["report_only_once"] == True):
+            break
+        else:
+            # sleep for 'report_interval_second'
+            time.sleep(system_cfg["report_interval_sec"])

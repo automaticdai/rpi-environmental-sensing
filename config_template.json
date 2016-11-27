@@ -1,16 +1,20 @@
 {
   "config":{
-    "report_interval_sec": 300
+    "report_only_once": true,
+    "report_interval_sec": 300,
+    "sensor_id": 1
   },
   "Yeelink":{
     "enable": false,
-    "api_key": "dad116b2e65c306a1081c519a7253b1b"
+    "api_key": "N/A",
+    "humidity_url": "",
+    "temperature_url": ""
   },
   "InitialState":{
     "enable": false,
-    "bucket_name": "",
-    "bucket_key": "",
-    "access_key": ""
+    "bucket_name": "N/A",
+    "bucket_key": "N/A",
+    "access_key": "N/A"
   },
   "MySQL":{
     "enable":false,
@@ -19,7 +23,7 @@
     "user": "N/A",
     "password": "N/A",
     "db": "N/A",
-    "charaset": "uff8mb4",
+    "charset": "utf8mb4",
     "table": "N/A"
   }
 }
