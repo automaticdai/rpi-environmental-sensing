@@ -13,6 +13,7 @@
 '''
 
 import time, datetime, json, http.client, htu21d
+import urllib.request
 from pprint import pprint
 
 sensor_id = 0
@@ -80,7 +81,7 @@ def yeelink_report(st, temp, humi, config):
 
 if __name__ == "__main__":
     # load configs from .json file
-    with open('config.json') as config_file:
+    with open('/home/pi/workspace/pi-indoor-weather-sensing/config.json') as config_file:
         config = json.load(config_file)
 
         system_cfg = config["config"]
@@ -123,6 +124,10 @@ if __name__ == "__main__":
 
         if (mysql_cfg["enable"] == True):
             mysql_commit(temp, humi, mysql_cfg)
+
+        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V0?value=' + ("%.2f" % temp))
+        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V1?value=' + ("%.2f" % humi))
+        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V2?value=' + ("%s" % st).replace(" ","_"))
 
         print("<<<<<<<<<<")
 

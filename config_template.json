@@ -7,8 +7,8 @@
   "Yeelink":{
     "enable": false,
     "api_key": "N/A",
-    "temperature_url": "",
-    "humidity_url": ""
+    "humidity_url": "",
+    "temperature_url": ""
   },
   "InitialState":{
     "enable": false,
