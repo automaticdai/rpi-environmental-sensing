@@ -12,7 +12,7 @@
   The IIC and HTU21D drivers are based on code from Adafruit.
 '''
 
-import time, datetime, json, http.client, htu21d
+import time, datetime, json, http.client, htu21d, am230x
 import urllib.request
 from pprint import pprint
 
@@ -115,6 +115,10 @@ if __name__ == "__main__":
         print("Temperature: %.2f C" % temp)
         print("Humidity: %.2f %% rH" % humi)
 
+        # read sensor data from AM2306
+        temp_out, humi_out = am230x.getAMSensorData()
+        print("Temperature(outdoor): %.2f C" % temp_out)
+        print("Humidity(outdoor): %.2f %% rH" % humi_out)
         # report to remote services
         if (yeelink_cfg["enable"] == True):
             yeelink_report(st, temp, humi, yeelink_cfg)
@@ -128,6 +132,8 @@ if __name__ == "__main__":
         response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V0?value=' + ("%.2f" % temp))
         response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V1?value=' + ("%.2f" % humi))
         response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V2?value=' + ("%s" % st).replace(" ","_"))
+		response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V3?value=' + ("%.2f" % temp_out))
+        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V4?value=' + ("%.2f" % humi_out))
 
         print("<<<<<<<<<<")
 
