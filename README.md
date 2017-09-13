@@ -1,23 +1,25 @@
-# rpi-indoor-weather-sensing
-
-## Introduction
-This is a personal indoor weather station that uses Raspberry Pi and HTU21 to get indoor temperature and humidity. Also support options to submit measured data to InitialState, Yeelink or a remote MySQL database.
+# RaspberryPi Indoor Environment Sensing
+This project is a personal indoor weather station that uses Raspberry Pi and HTU21 to get indoor temperature and humidity. Also support options to submit measured data to InitialState, Yeelink or a remote MySQL database.
 
 - HTU21D is a digital temperature + humidity sensor and it is connected to RPi by iic.
 - Raspberry Pi is a popular open-source hardware. This program is tested on RPi 1B, but should support all versions of RPi.
 
+
 ## Requirement
-- python 3
-- You will need Python Data Streamer (http://github.com/InitialState/python_appender) if data need to be reported to Initialstate.
+- Python 3.5
+- rpi.gpio: `sudo apt-get install python-rpi.gpio`
+- To report to MySQL server: `sudo apt-get install python3-pymysql`
+- To report to Initialstate, you will need Python Data Streamer (http://github.com/InitialState/python_appender).
+- To use AM2306/DHT22, need DHT driver: https://github.com/adafruit/Adafruit_Python_DHT
+
 
 ## Usage
-1. ```git clone https://github.com/automaticdai/rpi-indoor-environment-sensing```
+1. Change to home directory: `cd ~`
+2. Clone project: `git clone https://github.com/automaticdai/rpi-indoor-environment-sensing`
+3. Copy configuration from template: `cp config_template.json config.json`
+4. Edit the configuration file `config.json` and save
+5. Run the main script: `python3 main.py`
 
-2. ```cp config_template.json config.json```
-
-3. Change configuration file and save: ```vim config.json```
-
-4. Run script: ```python3 main.py```
 
 ## Configuration
 ### System Configuration

@@ -12,7 +12,8 @@
   The IIC and HTU21D drivers are based on code from Adafruit.
 '''
 
-import time, datetime, json, http.client, htu21d, am230x
+import time, datetime, json, http.client
+import htu21d, dht22
 import urllib.request
 from pprint import pprint
 
@@ -81,7 +82,7 @@ def yeelink_report(st, temp, humi, config):
 
 if __name__ == "__main__":
     # load configs from .json file
-    with open('/home/pi/workspace/pi-indoor-weather-sensing/config.json') as config_file:
+    with open('/home/pi/rpi-indoor-environment-sensing/config.json') as config_file:
         config = json.load(config_file)
 
         system_cfg = config["config"]
@@ -116,7 +117,7 @@ if __name__ == "__main__":
         print("Humidity: %.2f %% rH" % humi)
 
         # read sensor data from AM2306
-        temp_out, humi_out = am230x.getAMSensorData()
+        temp_out, humi_out = dht22.getDHTSensorData()
         print("Temperature(outdoor): %.2f C" % temp_out)
         print("Humidity(outdoor): %.2f %% rH" % humi_out)
         # report to remote services

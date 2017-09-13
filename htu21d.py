@@ -89,3 +89,9 @@ class HTU21D(object):
             return rh_final
         else:
             return -255
+
+# test code
+if __name__ == "__main__":
+    obj = htu21d.HTU21D()
+    print("Temp: %s C" % obj.read_temperature())
+    print("Humid: %s %% rH" % obj.read_humidity())
