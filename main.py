@@ -91,12 +91,13 @@ if __name__ == "__main__":
         yeelink_cfg = config["Yeelink"]
         initstate_cfg = config["InitialState"]
         mysql_cfg = config["MySQL"]
+        blynk_cfg = config["Blynk"]
 
         # print configuration
-        #pprint(config)
-        #pprint(yeelink_cfg)
-        #pprint(initstate_cfg)
-        #pprint(mysql_cfg)
+        pprint(config)
+        pprint(yeelink_cfg)
+        pprint(initstate_cfg)
+        pprint(mysql_cfg)
 
     # create a sensor object
     sensor = htu21d.HTU21D()
@@ -130,17 +131,20 @@ if __name__ == "__main__":
         if (mysql_cfg["enable"] == True):
             mysql_commit(temp, humi, mysql_cfg)
 
-        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V0?value=' + ("%.2f" % temp))
-        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V1?value=' + ("%.2f" % humi))
-        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V2?value=' + ("%s" % st).replace(" ","_"))
-		response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V3?value=' + ("%.2f" % temp_out))
-        response = urllib.request.urlopen('http://blynk-cloud.com/75a958a9a9224295afd691cb303e428d/update/V4?value=' + ("%.2f" % humi_out))
+        # report to Blynk server
+        if (blynk_cfg["enable"] == True):
+            baseurl = 'http://blynk-cloud.com/' + blynk_cfg["auth"]
+            response = urllib.request.urlopen(baseurl + '/update/V0?value=' + ("%.2f" % temp))
+            response = urllib.request.urlopen(baseurl + '/update/V1?value=' + ("%.2f" % humi))
+            response = urllib.request.urlopen(baseurl + '/update/V2?value=' + ("%s" % st).replace(" ","_"))
+    		response = urllib.request.urlopen(baseurl + '/update/V3?value=' + ("%.2f" % temp_out))
+            response = urllib.request.urlopen(baseurl + '/update/V4?value=' + ("%.2f" % humi_out))
 
         print("<<<<<<<<<<")
 
         # report once or periodically is defined by config 'report_only_once'
-        if (system_cfg["report_only_once"] == True):
-            break
-        else:
+        if (system_cfg["report_periodic"] == True):
             # sleep for 'report_interval_second'
             time.sleep(system_cfg["report_interval_sec"])
+        else:
+            break

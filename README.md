@@ -22,9 +22,9 @@ This project is a personal indoor weather station that uses Raspberry Pi and HTU
 
 
 ## Configuration
-### System Configuration
-- 'report_only_once': the script will be only ran once.
-- 'report_interval_sec': set the report period in second. If report_only_once is true, this parameter is ignored.
+### System options
+- 'report_periodic': run the script periodically / or only run one time.
+- 'report_interval_sec': set the report period (in second). If 'report_periodic' is false, this parameter will be ignored.
 
 ### Yeelink
 - 'enable': enable functionality.
@@ -35,6 +35,10 @@ This project is a personal indoor weather station that uses Raspberry Pi and HTU
 - 'enable': enable functionality.
 - 'bucket_name', 'bucket_key': bucket name and key from your data bucket.
 - 'access_key': provided by InitialState.
+
+## Blynk
+- 'enable'
+- 'auth'
 
 ### MySQL
 - 'enable': enable report to MySQL.

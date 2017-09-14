@@ -1,6 +1,6 @@
 {
   "config":{
-    "report_only_once": true,
+    "report_periodic": true,
     "report_interval_sec": 300,
     "sensor_id": 1
   },
@@ -25,5 +25,9 @@
     "db": "N/A",
     "charset": "utf8mb4",
     "table": "N/A"
-  }
+  },
+  "Blynk":{
+    "enable": false,
+    "auth": "N/A",
+  },
 }
