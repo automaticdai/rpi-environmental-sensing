@@ -52,6 +52,9 @@ def mysql_commit(temp, humid, config):
         connection.commit()
         print("Database Committed")
 
+    except:
+        pass
+
     finally:
         connection.close()
 
@@ -76,6 +79,15 @@ def yeelink_report(st, temp, humi, config):
         print(data)
 
         conn.close()
+    except:
+        pass
+
+
+def blynk_report(vpin_name_str, vpin_value_str, config):
+    try:
+        baseurl = 'http://blynk-cloud.com/' + config["auth"]
+        url = baseurl + '/update/' + vpin_name_str + '?value=' + vpin_value_str
+        response = urllib.request.urlopen(url)
     except:
         pass
 
@@ -121,6 +133,7 @@ if __name__ == "__main__":
         temp_out, humi_out = dht22.getDHTSensorData()
         print("Temperature(outdoor): %.2f C" % temp_out)
         print("Humidity(outdoor): %.2f %% rH" % humi_out)
+
         # report to remote services
         if (yeelink_cfg["enable"] == True):
             yeelink_report(st, temp, humi, yeelink_cfg)
@@ -131,14 +144,14 @@ if __name__ == "__main__":
         if (mysql_cfg["enable"] == True):
             mysql_commit(temp, humi, mysql_cfg)
 
-        # report to Blynk server
         if (blynk_cfg["enable"] == True):
+            blynk_report()
             baseurl = 'http://blynk-cloud.com/' + blynk_cfg["auth"]
-            response = urllib.request.urlopen(baseurl + '/update/V0?value=' + ("%.2f" % temp))
-            response = urllib.request.urlopen(baseurl + '/update/V1?value=' + ("%.2f" % humi))
-            response = urllib.request.urlopen(baseurl + '/update/V2?value=' + ("%s" % st).replace(" ","_"))
-    		response = urllib.request.urlopen(baseurl + '/update/V3?value=' + ("%.2f" % temp_out))
-            response = urllib.request.urlopen(baseurl + '/update/V4?value=' + ("%.2f" % humi_out))
+            blynk_report('V0', ("%.2f" % temp), blynk_cfg)
+            blynk_report('V1', ("%.2f" % humi), blynk_cfg)
+            blynk_report('V2', ("%s" % st).replace(" ","_"), blynk_cfg)
+            blynk_report('V3', ("%.2f" % temp_out), blynk_cfg)
+            blynk_report('V4', ("%.2f" % humi_out), blynk_cfg)
 
         print("<<<<<<<<<<")
 
