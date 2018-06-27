@@ -12,8 +12,7 @@
   The IIC and HTU21D drivers are based on code from Adafruit.
 '''
 
-import time, datetime, json, http.client
-import htu21d, dht22
+import time, datetime, json, http.client, htu21d, dht22
 import urllib.request
 from pprint import pprint
 
@@ -29,32 +28,32 @@ def initial_report(temp, humi, config):
     print("Initial State Committed")
 
 
-def mysql_commit(temp, humid, config):
+def mysql_commit(temp, humid, temp_ex, humid_ex, config):
     import pymysql.cursors
     # Connect to the database
-    connection = pymysql.connect(host=config['host'],
+    try:
+        connection = pymysql.connect(host=config['host'],
                                  user=config['user'],
                                  password=config['password'],
                                  db=config['db'],
                                  charset=config['charset'],
                                  cursorclass=pymysql.cursors.DictCursor)
 
-    try:
         with connection.cursor() as cursor:
             # Create a new record
-            sql = "INSERT INTO `WEATHER_MEASUREMENT` (`SENSOR_ID`, `IN_TEMP`, `IN_HUMID`) VALUES (%s, %s, %s)"
+            sql = "INSERT INTO `WEATHER_MEASUREMENT` (`SENSOR_ID`, `IN_TEMP`, `IN_HUMID`, `EX_TEMP`, `EX_HUMID`) VALUES (%s, %s, %s, %s, %s)"
             s_temp = "%.2f" % temp
             s_humid = "%.2f" % humid
-            cursor.execute(sql, (sensor_id, s_temp, s_humid))
+            s_temp_ex = "%.2f" % temp_ex
+            s_humid_ex = "%.2f" % humid_ex
+            cursor.execute(sql, (sensor_id, s_temp, s_humid, s_temp_ex, s_humid_ex))
 
         # connection is not autocommit by default. So you must commit to save
         # your changes.
         connection.commit()
         print("Database Committed")
-
     except:
         pass
-
     finally:
         connection.close()
 
@@ -106,10 +105,10 @@ if __name__ == "__main__":
         blynk_cfg = config["Blynk"]
 
         # print configuration
-        pprint(config)
-        pprint(yeelink_cfg)
-        pprint(initstate_cfg)
-        pprint(mysql_cfg)
+        #pprint(config)
+        #pprint(yeelink_cfg)
+        #pprint(initstate_cfg)
+        #pprint(mysql_cfg)
 
     # create a sensor object
     sensor = htu21d.HTU21D()
@@ -133,7 +132,6 @@ if __name__ == "__main__":
         temp_out, humi_out = dht22.getDHTSensorData()
         print("Temperature(outdoor): %.2f C" % temp_out)
         print("Humidity(outdoor): %.2f %% rH" % humi_out)
-
         # report to remote services
         if (yeelink_cfg["enable"] == True):
             yeelink_report(st, temp, humi, yeelink_cfg)
@@ -142,7 +140,7 @@ if __name__ == "__main__":
             initial_report(temp, humi, initstate_cfg)
 
         if (mysql_cfg["enable"] == True):
-            mysql_commit(temp, humi, mysql_cfg)
+            mysql_commit(temp, humi, temp_out, humi_out, mysql_cfg)
 
         if (blynk_cfg["enable"] == True):
             blynk_report()
