@@ -1,15 +1,8 @@
 ﻿#!/usr/bin/python3
+
 '''
-- Author: Yunfei Robotics Laboratory
-- Website: http://www.yfworld.com
-- Version: v0.3
-- Updated: 26 Nov 2016
-- Note:
-  This code collects environmental data from a HTU21D sensor on a Raspberry Pi
-  and report it to MySQL, Yeelink and/or Inital State. HTU21D is a temperature
-  and humidity sensor. It is connected to RPi via I2C_1 bus.
-- Credit:
-  The IIC and HTU21D drivers are based on code from Adafruit.
+- Yunfei Robotics Laboratory (http://www.yfrl.org)
+- v1.0 (26 March 2020)
 '''
 
 import time, datetime, json, http.client, htu21d, dht22
@@ -17,15 +10,6 @@ import urllib.request
 from pprint import pprint
 
 sensor_id = 0
-
-def initial_report(temp, humi, config):
-    from ISStreamer.Streamer import Streamer
-    streamer = Streamer(bucket_name=config["bucket_name"],
-                bucket_key=config["bucket_key"],
-                access_key=config["access_key"])
-    streamer.log("Temperature", round(temp,1))
-    streamer.log("Humidity", round(humi,1))
-    print("Initial State Committed")
 
 
 def mysql_commit(temp, humid, temp_ex, humid_ex, config):
@@ -56,30 +40,6 @@ def mysql_commit(temp, humid, temp_ex, humid_ex, config):
         pass
     finally:
         connection.close()
-
-
-def yeelink_report(st, temp, humi, config):
-    headers = {"Content-type": "application/x-www-form-urlencoded","Accept": "text/plain", "U-ApiKey": config["api_key"]}
-    params_temp = "{\"timestamp\":\"%s\",\"value\":%.2f}" % (st, temp)
-    params_humi = "{\"timestamp\":\"%s\",\"value\":%.2f}" % (st, humi)
-
-    try:
-        conn = http.client.HTTPConnection("api.yeelink.net", timeout=10)
-        conn.request("POST", config["temperature_url"], params_temp, headers)
-        response = conn.getresponse()
-        print(response.status, response.reason)
-        data = response.read()
-        print(data)
-
-        conn.request("POST", config["humidity_url"], params_humi, headers)
-        response = conn.getresponse()
-        print(response.status, response.reason)
-        data = response.read()
-        print(data)
-
-        conn.close()
-    except:
-        pass
 
 
 def blynk_report(vpin_name_str, vpin_value_str, config):
@@ -132,13 +92,8 @@ if __name__ == "__main__":
         temp_out, humi_out = dht22.getDHTSensorData()
         print("Temperature(outdoor): %.2f C" % temp_out)
         print("Humidity(outdoor): %.2f %% rH" % humi_out)
+
         # report to remote services
-        if (yeelink_cfg["enable"] == True):
-            yeelink_report(st, temp, humi, yeelink_cfg)
-
-        if (initstate_cfg["enable"] == True):
-            initial_report(temp, humi, initstate_cfg)
-
         if (mysql_cfg["enable"] == True):
             mysql_commit(temp, humi, temp_out, humi_out, mysql_cfg)
 
