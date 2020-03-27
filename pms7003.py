@@ -86,7 +86,7 @@ class PMS7003Sensor:
             else:
                 return {BYTES_MEANING[i]: values[i] for i in range(1, NO_VALUES)} #(regular dict)
         else:
-            raise PmsSensorException
+            raise PMSSensorException
 
     def close(self):
         self._serial.close()
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     while True:
         try:
             print(sensor.read())
-        except PmsSensorException:
+        except PMSSensorException:
             print('Connection problem')
 
     sensor.close()
