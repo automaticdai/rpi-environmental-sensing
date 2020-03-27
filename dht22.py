@@ -1,14 +1,19 @@
+#!/usr/bin/python3
+
 """
-dht22.py
-Temperature/Humidity monitor using Raspberry Pi and DHT22.
+DHT22 driver
+YF Robotics Laboratory (http://www.yfrl.org)
 """
+
 import sys
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 
+
 def getDHTSensorData():
   RH, T = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, 7)
   return (T, RH)
+
 
 # call main
 if __name__ == '__main__':

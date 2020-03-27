@@ -1,4 +1,10 @@
 #!/usr/bin/python3
+
+"""
+HTU21D driver
+YF Robotics Laboratory (http://www.yfrl.org)
+"""
+
 import struct
 import array
 import time
