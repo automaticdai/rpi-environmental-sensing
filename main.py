@@ -116,7 +116,9 @@ if __name__ == "__main__":
 
         # report once or periodically is defined by config 'report_only_once'
         if (system_cfg["report_periodic"] == True):
-            # sleep for 'report_interval_second'
-            time.sleep(system_cfg["report_interval_sec"])
+            # sleep for (report_period - elapsed_time)
+            ts_diff = time.time() - ts
+            interval = max(int(system_cfg["report_interval_sec"] - ts_diff), 0)
+            time.sleep(interval)
         else:
             break
