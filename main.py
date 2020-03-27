@@ -9,6 +9,7 @@ Version 1.0 (26 March 2020)
 import time, datetime, json
 import htu21d
 import dht22
+import pms7003
 import urllib.request
 import http.client
 from pprint import pprint
@@ -27,12 +28,14 @@ def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
 
         with connection.cursor() as cursor:
             # Create a new record
-            sql = "INSERT INTO `WEATHER_MEASUREMENT` (`SENSOR_ID`, `IN_TEMP`, `IN_HUMID`, `EX_TEMP`, `EX_HUMID`) VALUES (%s, %s, %s, %s, %s)"
+            sql = "INSERT INTO `WEATHER_MEASUREMENT` (`SENSOR_ID`, `IN_TEMP`, \
+                `IN_HUMID`, `EX_TEMP`, `EX_HUMID`) VALUES (%s, %s, %s, %s, %s)"
             s_temp = "%.2f" % temp
             s_humid = "%.2f" % humid
             s_temp_ex = "%.2f" % temp_ex
             s_humid_ex = "%.2f" % humid_ex
-            cursor.execute(sql, (sensor_id, s_temp, s_humid, s_temp_ex, s_humid_ex))
+            cursor.execute(sql, (sensor_id, s_temp, s_humid, \
+                            s_temp_ex, s_humid_ex))
 
         # connection is not autocommit by default. So you must commit to save
         # your changes.
@@ -65,14 +68,16 @@ if __name__ == "__main__":
 
         # print configuration
         pprint(config)
-        pprint(mysql_cfg)
 
     # create a sensor object
-    sensor = htu21d.HTU21D()
+    htu = htu21d.HTU21D()
+
+    # create a PMS object
+    pms = pms7003.PMS7003Sensor()
 
     # infinite loop goes here
     while (True):
-        print(">>>>>>>>>>")
+        print(">>>>>>>>>>>>>>>>>>>>")
 
         # print current time stamp and sensor data
         ts = time.time()
@@ -80,8 +85,8 @@ if __name__ == "__main__":
         print(st)
 
         # read sensor data from HTU21D sensor
-        temp = sensor.read_temperature()
-        humi = sensor.read_humidity()
+        temp = htu.read_temperature()
+        humi = htu.read_humidity()
         print("Temperature: %.2f C" % temp)
         print("Humidity: %.2f %% rH" % humi)
 
@@ -103,7 +108,7 @@ if __name__ == "__main__":
             blynk_report('V3', ("%.2f" % temp_out), blynk_cfg)
             blynk_report('V4', ("%.2f" % humi_out), blynk_cfg)
 
-        print("<<<<<<<<<<")
+        print("<<<<<<<<<<<<<<<<<<<<")
 
         # report once or periodically is defined by config 'report_only_once'
         if (system_cfg["report_periodic"] == True):

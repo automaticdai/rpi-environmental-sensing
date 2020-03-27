@@ -25,8 +25,7 @@ This project is a personal sensing station that uses Raspberry Pi, a HTU21D, a A
 2. Clone project: `git clone https://github.com/automaticdai/rpi-environmental-sensing`
 3. Edit the configuration file `rpi-weather-config.json.json` and save
 4. Copy the configuration to etc: `sudo cp rpi-weather-config.json /etc/rpi-weather-config.json`
-5. Change pemission: `chmod +x main.py`
-6. Run the main script: `./main.py`
+5. Run the main script: `python3 main.py`
 
 
 ## 3. System Configuration
