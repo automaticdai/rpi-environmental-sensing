@@ -1,0 +1,5 @@
+sunny
+rainy
+
+cloudy
+showers
