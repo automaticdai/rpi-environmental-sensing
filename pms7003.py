@@ -19,50 +19,49 @@ class PMSSensorException(Exception):
     """
     pass
 
+START_SEQ = bytes([0x42, 0x4d])
+FRAME_BYTES = 30
+
+#'.' are replaced with '_' for easier database compability
+BYTES_MEANING = {
+    1 : 'pm1_0cf1',
+    2 : 'pm2_5cf1',
+    3 : 'pm10cf1',
+    4 : 'pm1_0',
+    5 : 'pm2_5',
+    6 : 'pm10',
+    7 : 'n0_3',
+    8 : 'n0_5',
+    9 : 'n1_0',
+    10: 'n2_5',
+    11 : 'n5_0',
+    12 : 'n10',
+}
+
+VALUES = list(BYTES_MEANING.values())
+NO_VALUES = len(BYTES_MEANING) + 1
+
+START_BYTE_1 = 0x42
+START_BYTE_2 = 0x4d
+
+PMS_FRAME_LENGTH = 0
+PMS_PM1_0 = 1
+PMS_PM2_5 = 2
+PMS_PM10_0 = 3
+PMS_PM1_0_ATM = 4
+PMS_PM2_5_ATM = 5
+PMS_PM10_0_ATM = 6
+PMS_PCNT_0_3 = 7
+PMS_PCNT_0_5 = 8
+PMS_PCNT_1_0 = 9
+PMS_PCNT_2_5 = 10
+PMS_PCNT_5_0 = 11
+PMS_PCNT_10_0 = 12
+PMS_VERSION = 13
+PMS_ERROR = 14
+PMS_CHECKSUM = 15
 
 class PMS7003Sensor:
-    START_SEQ = bytes([0x42, 0x4d])
-    FRAME_BYTES = 30
-
-    #'.' are replaced with '_' for easier database compability
-    BYTES_MEANING = {
-        1 : 'pm1_0cf1',
-        2 : 'pm2_5cf1',
-        3 : 'pm10cf1',
-        4 : 'pm1_0',
-        5 : 'pm2_5',
-        6 : 'pm10',
-        7 : 'n0_3',
-        8 : 'n0_5',
-        9 : 'n1_0',
-        10: 'n2_5',
-        11 : 'n5_0',
-        12 : 'n10',
-    }
-
-    VALUES = list(BYTES_MEANING.values())
-    NO_VALUES = len(BYTES_MEANING) + 1
-
-    START_BYTE_1 = 0x42
-    START_BYTE_2 = 0x4d
-
-    PMS_FRAME_LENGTH = 0
-    PMS_PM1_0 = 1
-    PMS_PM2_5 = 2
-    PMS_PM10_0 = 3
-    PMS_PM1_0_ATM = 4
-    PMS_PM2_5_ATM = 5
-    PMS_PM10_0_ATM = 6
-    PMS_PCNT_0_3 = 7
-    PMS_PCNT_0_5 = 8
-    PMS_PCNT_1_0 = 9
-    PMS_PCNT_2_5 = 10
-    PMS_PCNT_5_0 = 11
-    PMS_PCNT_10_0 = 12
-    PMS_VERSION = 13
-    PMS_ERROR = 14
-    PMS_CHECKSUM = 15
-
 
     def __init__(self, serial_device):
         #values according to product data manual
