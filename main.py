@@ -67,13 +67,13 @@ if __name__ == "__main__":
         blynk_cfg = config["Blynk"]
 
         # print configuration
-        pprint(config)
+        #pprint(config)
 
     # create a sensor object
     htu = htu21d.HTU21D()
 
     # create a PMS object
-    pms = pms7003.PMS7003Sensor()
+    pms = pms7003.PMS7003Sensor('/dev/ttyS0')
 
     # infinite loop goes here
     while (True):
@@ -88,12 +88,16 @@ if __name__ == "__main__":
         temp = htu.read_temperature()
         humi = htu.read_humidity()
         print("Temperature: %.2f C" % temp)
-        print("Humidity: %.2f %% rH" % humi)
+        print("Humidity: %.2f %%rH" % humi)
 
         # read sensor data from AM2306
         temp_out, humi_out = dht22.getDHTSensorData()
         print("Temperature(outdoor): %.2f C" % temp_out)
-        print("Humidity(outdoor): %.2f %% rH" % humi_out)
+        print("Humidity(outdoor): %.2f %%rH" % humi_out)
+
+        reading = pms.read()
+        print("PM2.5: %d" % reading['pm2_5'])
+        print("PM10: %d" % reading['pm10_0'])
 
         # report to remote services
         if (mysql_cfg["enable"] == True):
