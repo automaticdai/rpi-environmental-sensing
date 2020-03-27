@@ -58,7 +58,7 @@ class PMS7003Sensor:
             if len(frame) == FRAME_BYTES:
                 return frame
             else:
-                raise PmsSensorException
+                raise PMSSensorException
 
     def _parse_frame(self, f):
         """
