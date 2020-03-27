@@ -55,7 +55,7 @@ def blynk_report(vpin_name_str, vpin_value_str, config):
 
 if __name__ == "__main__":
     # load configs from .json file
-    with open('/home/pi/rpi-indoor-environment-sensing/config.json') as config_file:
+    with open('/etc/rpi-weather-config.json') as config_file:
         config = json.load(config_file)
 
         system_cfg = config["config"]
