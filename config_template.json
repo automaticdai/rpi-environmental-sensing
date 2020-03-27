@@ -1,20 +1,9 @@
 {
   "config":{
-    "report_periodic": true,
-    "report_interval_sec": 300,
-    "sensor_id": 1
-  },
-  "Yeelink":{
-    "enable": false,
-    "api_key": "N/A",
-    "humidity_url": "",
-    "temperature_url": ""
-  },
-  "InitialState":{
-    "enable": false,
-    "bucket_name": "N/A",
-    "bucket_key": "N/A",
-    "access_key": "N/A"
+    "sensor_id": 1,
+    "log_on": true,
+    "report_periodic": false,
+    "report_interval_sec": 300
   },
   "MySQL":{
     "enable":false,
@@ -28,6 +17,6 @@
   },
   "Blynk":{
     "enable": false,
-    "auth": "N/A",
-  },
+    "auth": "N/A"
+  }
 }

@@ -1,18 +1,20 @@
 ﻿#!/usr/bin/python3
 
 '''
-- Yunfei Robotics Laboratory (http://www.yfrl.org)
-- v1.0 (26 March 2020)
+RPi Environmental Sensing
+Yunfei Robotics Laboratory (http://www.yfrl.org)
+Version 1.0 (26 March 2020)
 '''
 
-import time, datetime, json, http.client, htu21d, dht22
+import time, datetime, json
+import htu21d
+import dht22
 import urllib.request
+import http.client
 from pprint import pprint
 
-sensor_id = 0
 
-
-def mysql_commit(temp, humid, temp_ex, humid_ex, config):
+def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
     import pymysql.cursors
     # Connect to the database
     try:
@@ -58,17 +60,12 @@ if __name__ == "__main__":
 
         system_cfg = config["config"]
         sensor_id = system_cfg["sensor_id"]
-
-        yeelink_cfg = config["Yeelink"]
-        initstate_cfg = config["InitialState"]
         mysql_cfg = config["MySQL"]
         blynk_cfg = config["Blynk"]
 
         # print configuration
-        #pprint(config)
-        #pprint(yeelink_cfg)
-        #pprint(initstate_cfg)
-        #pprint(mysql_cfg)
+        pprint(config)
+        pprint(mysql_cfg)
 
     # create a sensor object
     sensor = htu21d.HTU21D()
@@ -95,7 +92,7 @@ if __name__ == "__main__":
 
         # report to remote services
         if (mysql_cfg["enable"] == True):
-            mysql_commit(temp, humi, temp_out, humi_out, mysql_cfg)
+            mysql_commit(sensor_id, temp, humi, temp_out, humi_out, mysql_cfg)
 
         if (blynk_cfg["enable"] == True):
             blynk_report()
