@@ -92,6 +92,7 @@ if __name__ == "__main__":
 
         # read sensor data from AM2306
         temp_out, humi_out = dht22.getDHTSensorData()
+
         print("Temperature(outdoor): %.2f C" % temp_out)
         print("Humidity(outdoor): %.2f %%rH" % humi_out)
 
