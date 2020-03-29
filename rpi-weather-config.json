@@ -4,7 +4,7 @@
     "sensor_name": "node",
     "log_on": true,
     "report_periodic": true,
-    "report_interval_sec": 10
+    "report_interval_sec": 60
   },
   "MQTT":{
     "enable":true,

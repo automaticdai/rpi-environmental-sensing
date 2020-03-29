@@ -1,6 +1,7 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-'''
+"""
 PMS7003 driver
 - PM1.0, PM2.5 and PM10.0 concentration in both standard & enviromental units
 - Particulate matter per 0.1L air, categorized into 0.3um, 0.5um, 1.0um, 2.5um, 5.0um and 10um size bins
@@ -10,18 +11,12 @@ YF Robotics Laboratory
 
 Credit:
 This code is based on: https://github.com/tomek-l/pms7003/
-'''
+"""
 
 import serial
 from collections import OrderedDict
 from pprint import pprint
 
-class PMSSensorException(Exception):
-    """
-    Implies a problem with sensor communication that is unlikely to re-occur (e.g. serial connection glitch).
-    Prevents from returning corrupt measurements.
-    """
-    pass
 
 START_SEQ = bytes([0x42, 0x4d])
 FRAME_BYTES = 30
@@ -46,7 +41,15 @@ VALUES = list(BYTES_MEANING.values())
 NO_VALUES = len(BYTES_MEANING) + 1
 
 
-class PMS7003Sensor:
+class PMSSensorException(Exception):
+    """
+    Implies a problem with sensor communication that is unlikely to re-occur (e.g. serial connection glitch).
+    Prevents from returning corrupt measurements.
+    """
+    pass
+
+
+class PMS7003Sensor(object):
     def __init__(self, serial_device):
         #values according to product data manual
         self._serial = serial.Serial(port=serial_device, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=2)

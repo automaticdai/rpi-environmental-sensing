@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
 """
 HTU21D driver
@@ -19,6 +20,10 @@ CMD_READ_HUM_NOHOLD = b"\xF5"
 CMD_WRITE_USER_REG = b"\xE6"
 CMD_READ_USER_REG = b"\xE7"
 CMD_SOFT_RESET = b"\xFE"
+
+
+class HTUSensorException(Exception):
+    pass
 
 
 class HTU21D(object):
@@ -73,7 +78,7 @@ class HTU21D(object):
             temp = (buf[0] << 8 | buf[1]) & 0xFFFC
             return self.ctemp(temp)
         else:
-            return -255
+            raise HTUSensorException
 
 
     def read_humidity(self):
@@ -94,7 +99,8 @@ class HTU21D(object):
 
             return rh_final
         else:
-            return -255
+            raise HTUSensorException
+
 
 # test code
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
 """
 DHT22 driver
@@ -10,18 +11,20 @@ import RPi.GPIO as GPIO
 import Adafruit_DHT
 
 
+class DHTSensorException(Exception):
+    pass
+
+
 def getDHTSensorData():
     # Try to grab a sensor reading.  Use the read_retry method which will retry up
     # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
     RH, T = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, 7)
 
     # handle exception
-    if RH is None:
-        RH = -1
-    if T is None:
-        T = -1
-
-    return (T, RH)
+    if (RH is not None) and (T is not None):
+        return (T, RH)
+    else:
+        raise DHTSensorException
 
 
 # call main

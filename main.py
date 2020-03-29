@@ -7,7 +7,8 @@ Yunfei Robotics Laboratory (http://www.yfrl.org)
 Version 1.0 (26 March 2020)
 """
 
-import time, datetime, json
+import sys, time, datetime, json
+import traceback
 import htu21d
 import dht22
 import pms7003
@@ -57,10 +58,9 @@ if __name__ == "__main__":
         system_cfg = config["config"]
         mqtt_cfg = config["MQTT"]
         mysql_cfg = config["MySQL"]
-        blynk_cfg = config["Blynk"]
 
         # print configuration
-        #pprint(config)
+        pprint(config)
 
     # read sensor id & name
     sensor_id = system_cfg["sensor_id"]
@@ -70,27 +70,33 @@ if __name__ == "__main__":
     try:
         htu = htu21d.HTU21D()
     except:
-        pass
+        print("[Error] HTU21D initialized failed!")
+        traceback.print_exc()
+        sys.exit(0)
 
     # create a PMS object
     try:
         pms = pms7003.PMS7003Sensor('/dev/ttyS0')
     except:
-        pass
+        print("[Error] PMS7003 initialized failed!")
+        traceback.print_exc()
+        sys.exit(0)
 
     # connect to MQTT
-    if (mqtt_cfg["enable"] == True):
+    if mqtt_cfg["enable"] == True:
         mqtt_server = mqtt_cfg["server"]
         mqtt_port = mqtt_cfg["port"]
 
-        client = mqtt.Client()
-        #client.on_connect = on_connect
-        #client.on_message = on_message
-
-        client.connect(mqtt_server, mqtt_port, 60)
+        try:
+            client = mqtt.Client()
+            client.connect(mqtt_server, mqtt_port, 60)
+        except:
+            print("[Error] MQTT initialized failed!")
+            traceback.print_exc()
+            sys.exit(0)
 
     # infinite loop goes here
-    while (True):
+    while True:
         print(">>>>>>>>>>>>>>>>>>>>")
 
         # print current time stamp and sensor data
@@ -99,25 +105,39 @@ if __name__ == "__main__":
         print(st)
 
         # read sensor data from HTU21D sensor
-        temp = htu.read_temperature()
-        humid = htu.read_humidity()
-        print("Temperature: %.2f C" % temp)
-        print("Humidity: %.2f %%rH" % humid)
+        try:
+            temp = round( htu.read_temperature(), 2 )
+            humid = round( htu.read_humidity(), 2 )
+            print("Temperature: %.2f C" % temp)
+            print("Humidity: %.2f %%rH" % humid)
+        except:
+            print("[Error] HTU read failed!")
+            continue
 
         # read sensor data from AM2306
-        temp_out, humid_out = dht22.getDHTSensorData()
-        print("Temperature(outdoor): %.2f C" % temp_out)
-        print("Humidity(outdoor): %.2f %%rH" % humid_out)
+        try:
+            temp_out, humid_out = dht22.getDHTSensorData()
+            temp_out = round(temp_out, 2)
+            humid_out = round(humid_out, 2)
+            print("Temperature(outdoor): %.2f C" % temp_out)
+            print("Humidity(outdoor): %.2f %%rH" % humid_out)
+        except:
+            print("[Error] AM2306 read failed!")
+            continue
 
         # read data from PMS7003
-        reading = pms.read()
-        pm2_5 = reading['pm2_5']
-        pm10 = reading['pm10_0']
-        print("PM2.5: %d" % pm2_5)
-        print("PM10: %d" % pm10)
+        try:
+            reading = pms.read()
+            pm2_5 = reading['pm2_5']
+            pm10 = reading['pm10_0']
+            print("PM2.5: %d" % pm2_5)
+            print("PM10: %d" % pm10)
+        except:
+            print("[Error] PMS7003 read failed!")
+            continue
 
         # report to MQTT
-        if (mqtt_cfg["enable"] == True):
+        if mqtt_cfg["enable"] == True:
             client.publish(sensor_name + "/Timestamp", st);
             client.publish(sensor_name + "/Temp", temp)
             client.publish(sensor_name + "/Humid", humid)
@@ -127,16 +147,17 @@ if __name__ == "__main__":
             client.publish(sensor_name + "/PM10", pm10)
 
         # report to MySQL
-        if (mysql_cfg["enable"] == True):
+        if mysql_cfg["enable"] == True:
             mysql_commit(sensor_id, temp, humid, temp_out, humid_out, mysql_cfg)
 
         print("<<<<<<<<<<<<<<<<<<<< \n")
 
         # report once or periodically is defined by config 'report_only_once'
-        if (system_cfg["report_periodic"] == True):
+        if system_cfg["report_periodic"] == True:
             # sleep for (report_period - elapsed_time)
             ts_diff = time.time() - ts
             interval = max(int(system_cfg["report_interval_sec"] - ts_diff), 0)
             time.sleep(interval)
         else:
+            # break the while loop
             break

@@ -32,6 +32,7 @@ This project is a personal sensing station that uses Raspberry Pi, HTU21D (indoo
 
 You can run individual python script to test the sensor driver, e.g., `python3 dht22.py`
 
+
 ## 3. System Configuration
 
 For the configuration file `config.json`:
@@ -39,6 +40,7 @@ For the configuration file `config.json`:
 ### Config
 
 - `sensor_id`: assign a sensor ID to the device.
+- `sensor_name`: name of the sensor
 - `log_on`: enable writing to the local log.
 - `report_periodic`: run the script periodically / or only run one time.
 - `report_interval_sec`: set the report interval (in second). If 'report_periodic' is false, this parameter will be ignored.
@@ -54,6 +56,7 @@ For the configuration file `config.json`:
 - `host`, `port`: database IP and port.
 - `user`, `password`: login user information.
 - `db`, `table`: database and table name (should be an existed database).
+- `charset`: character set
 
 
 ## 4. Credit
