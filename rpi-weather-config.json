@@ -1,22 +1,28 @@
 {
   "config":{
     "sensor_id": 1,
+    "sensor_name": "node",
     "log_on": true,
-    "report_periodic": false,
-    "report_interval_sec": 300
+    "report_periodic": true,
+    "report_interval_sec": 10
+  },
+  "MQTT":{
+    "enable":true,
+    "server":"192.168.1.110",
+    "port":1883
   },
   "MySQL":{
     "enable":false,
-    "host": "N/A",
+    "host": " ",
     "port": 16055,
-    "user": "N/A",
-    "password": "N/A",
-    "db": "N/A",
+    "user": " ",
+    "password": " ",
+    "db": " ",
     "charset": "utf8mb4",
-    "table": "N/A"
+    "table": " "
   },
   "Blynk":{
     "enable": false,
-    "auth": "N/A"
+    "auth": " "
   }
 }

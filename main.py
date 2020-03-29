@@ -13,10 +13,12 @@ import pms7003
 import urllib.request
 import http.client
 from pprint import pprint
+# comment if you do not use the following packages
+import pymysql.cursors
+import paho.mqtt.client as mqtt
 
 
 def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
-    import pymysql.cursors
     # Connect to the database
     try:
         connection = pymysql.connect(host=config['host'],
@@ -62,18 +64,33 @@ if __name__ == "__main__":
         config = json.load(config_file)
 
         system_cfg = config["config"]
-        sensor_id = system_cfg["sensor_id"]
+        mqtt_cfg = config["MQTT"]
         mysql_cfg = config["MySQL"]
         blynk_cfg = config["Blynk"]
 
         # print configuration
         #pprint(config)
 
+    # read sensor id & name
+    sensor_id = system_cfg["sensor_id"]
+    sensor_name = system_cfg["sensor_name"]
+
     # create a sensor object
     htu = htu21d.HTU21D()
 
     # create a PMS object
     pms = pms7003.PMS7003Sensor('/dev/ttyS0')
+
+    # connect to MQTT
+    if (mqtt_cfg["enable"] == True):
+        mqtt_server = mqtt_cfg["server"]
+        mqtt_port = mqtt_cfg["port"]
+
+        client = mqtt.Client()
+        #client.on_connect = on_connect
+        #client.on_message = on_message
+
+        client.connect(mqtt_server, mqtt_port, 60)
 
     # infinite loop goes here
     while (True):
@@ -97,13 +114,26 @@ if __name__ == "__main__":
         print("Humidity(outdoor): %.2f %%rH" % humi_out)
 
         reading = pms.read()
-        print("PM2.5: %d" % reading['pm2_5'])
-        print("PM10: %d" % reading['pm10_0'])
+        pm2_5 = reading['pm2_5']
+        pm10 = reading['pm10_0']
+        print("PM2.5: %d" % pm2_5)
+        print("PM10: %d" % pm10)
 
-        # report to remote services
+        # report to MQTT
+        if (mqtt_cfg["enable"] == True):
+            client.publish(sensor_name + "/Timestamp", st);
+            client.publish(sensor_name + "/Temp", temp)
+            client.publish(sensor_name + "/Humid", humi)
+            client.publish(sensor_name + "/Temp_out", temp_out)
+            client.publish(sensor_name + "/Humid_out", humi_out)
+            client.publish(sensor_name + "/PM2_5", pm2_5)
+            client.publish(sensor_name + "/PM10", pm10)
+
+        # report to MySQL
         if (mysql_cfg["enable"] == True):
             mysql_commit(sensor_id, temp, humi, temp_out, humi_out, mysql_cfg)
 
+        # report to Blynk
         if (blynk_cfg["enable"] == True):
             blynk_report()
             baseurl = 'http://blynk-cloud.com/' + blynk_cfg["auth"]
