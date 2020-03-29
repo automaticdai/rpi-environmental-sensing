@@ -8,7 +8,7 @@
   },
   "MQTT":{
     "enable":true,
-    "server":"192.168.1.110",
+    "server":" ",
     "port":1883
   },
   "MySQL":{
@@ -20,9 +20,5 @@
     "db": " ",
     "charset": "utf8mb4",
     "table": " "
-  },
-  "Blynk":{
-    "enable": false,
-    "auth": " "
   }
 }

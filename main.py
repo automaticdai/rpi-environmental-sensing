@@ -1,10 +1,11 @@
 ﻿#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-'''
+"""
 RPi Environmental Sensing
 Yunfei Robotics Laboratory (http://www.yfrl.org)
 Version 1.0 (26 March 2020)
-'''
+"""
 
 import time, datetime, json
 import htu21d
@@ -32,12 +33,11 @@ def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
             # Create a new record
             sql = "INSERT INTO `WEATHER_MEASUREMENT` (`SENSOR_ID`, `IN_TEMP`, \
                 `IN_HUMID`, `EX_TEMP`, `EX_HUMID`) VALUES (%s, %s, %s, %s, %s)"
-            s_temp = "%.2f" % temp
-            s_humid = "%.2f" % humid
-            s_temp_ex = "%.2f" % temp_ex
-            s_humid_ex = "%.2f" % humid_ex
-            cursor.execute(sql, (sensor_id, s_temp, s_humid, \
-                            s_temp_ex, s_humid_ex))
+            s_temp = "{:.2f}".format(temp)
+            s_humid = "{:.2f}".format(humid)
+            s_temp_ex = "{:.2f}".format(temp_ex)
+            s_humid_ex = "{:.2f}".format(humid_ex)
+            cursor.execute(sql, (sensor_id, s_temp, s_humid, s_temp_ex, s_humid_ex))
 
         # connection is not autocommit by default. So you must commit to save
         # your changes.
@@ -47,15 +47,6 @@ def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
         pass
     finally:
         connection.close()
-
-
-def blynk_report(vpin_name_str, vpin_value_str, config):
-    try:
-        baseurl = 'http://blynk-cloud.com/' + config["auth"]
-        url = baseurl + '/update/' + vpin_name_str + '?value=' + vpin_value_str
-        response = urllib.request.urlopen(url)
-    except:
-        pass
 
 
 if __name__ == "__main__":
@@ -76,10 +67,16 @@ if __name__ == "__main__":
     sensor_name = system_cfg["sensor_name"]
 
     # create a sensor object
-    htu = htu21d.HTU21D()
+    try:
+        htu = htu21d.HTU21D()
+    except:
+        pass
 
     # create a PMS object
-    pms = pms7003.PMS7003Sensor('/dev/ttyS0')
+    try:
+        pms = pms7003.PMS7003Sensor('/dev/ttyS0')
+    except:
+        pass
 
     # connect to MQTT
     if (mqtt_cfg["enable"] == True):
@@ -103,16 +100,16 @@ if __name__ == "__main__":
 
         # read sensor data from HTU21D sensor
         temp = htu.read_temperature()
-        humi = htu.read_humidity()
+        humid = htu.read_humidity()
         print("Temperature: %.2f C" % temp)
-        print("Humidity: %.2f %%rH" % humi)
+        print("Humidity: %.2f %%rH" % humid)
 
         # read sensor data from AM2306
-        temp_out, humi_out = dht22.getDHTSensorData()
-
+        temp_out, humid_out = dht22.getDHTSensorData()
         print("Temperature(outdoor): %.2f C" % temp_out)
-        print("Humidity(outdoor): %.2f %%rH" % humi_out)
+        print("Humidity(outdoor): %.2f %%rH" % humid_out)
 
+        # read data from PMS7003
         reading = pms.read()
         pm2_5 = reading['pm2_5']
         pm10 = reading['pm10_0']
@@ -123,27 +120,17 @@ if __name__ == "__main__":
         if (mqtt_cfg["enable"] == True):
             client.publish(sensor_name + "/Timestamp", st);
             client.publish(sensor_name + "/Temp", temp)
-            client.publish(sensor_name + "/Humid", humi)
+            client.publish(sensor_name + "/Humid", humid)
             client.publish(sensor_name + "/Temp_out", temp_out)
-            client.publish(sensor_name + "/Humid_out", humi_out)
+            client.publish(sensor_name + "/Humid_out", humid_out)
             client.publish(sensor_name + "/PM2_5", pm2_5)
             client.publish(sensor_name + "/PM10", pm10)
 
         # report to MySQL
         if (mysql_cfg["enable"] == True):
-            mysql_commit(sensor_id, temp, humi, temp_out, humi_out, mysql_cfg)
+            mysql_commit(sensor_id, temp, humid, temp_out, humid_out, mysql_cfg)
 
-        # report to Blynk
-        if (blynk_cfg["enable"] == True):
-            blynk_report()
-            baseurl = 'http://blynk-cloud.com/' + blynk_cfg["auth"]
-            blynk_report('V0', ("%.2f" % temp), blynk_cfg)
-            blynk_report('V1', ("%.2f" % humi), blynk_cfg)
-            blynk_report('V2', ("%s" % st).replace(" ","_"), blynk_cfg)
-            blynk_report('V3', ("%.2f" % temp_out), blynk_cfg)
-            blynk_report('V4', ("%.2f" % humi_out), blynk_cfg)
-
-        print("<<<<<<<<<<<<<<<<<<<<")
+        print("<<<<<<<<<<<<<<<<<<<< \n")
 
         # report once or periodically is defined by config 'report_only_once'
         if (system_cfg["report_periodic"] == True):
