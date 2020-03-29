@@ -150,7 +150,8 @@ if __name__ == "__main__":
 
         # report to MQTT
         if mqtt_cfg["enable"] == True:
-            client.publish(sensor_name + "/Timestamp", st);
+            client.loop()
+            client.publish(sensor_name + "/Timestamp", st)
             client.publish(sensor_name + "/Temp", temp)
             client.publish(sensor_name + "/Humid", humid)
             client.publish(sensor_name + "/Temp_out", temp_out)
