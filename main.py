@@ -18,6 +18,7 @@ from pprint import pprint
 # comment if you do not use the following packages
 import pymysql.cursors
 import paho.mqtt.client as mqtt
+import logging
 
 
 def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
@@ -62,6 +63,15 @@ if __name__ == "__main__":
         # print configuration
         pprint(config)
 
+    # enable logger
+    LOG_FORMAT = '[%(asctime)s-%(levelname)s: %(message)s]'
+    LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
+    if system_cfg["log_to_file"] == True:
+        logging.basicConfig(filename='log.txt', filemode='a', level=logging.INFO,
+                            format=LOG_FORMAT, datefmt=LOG_DATEFMT)
+    else:
+        logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=LOG_DATEFMT)
+
     # read sensor id & name
     sensor_id = system_cfg["sensor_id"]
     sensor_name = system_cfg["sensor_name"]
@@ -90,28 +100,30 @@ if __name__ == "__main__":
         try:
             client = mqtt.Client()
             client.connect(mqtt_server, mqtt_port, 60)
+            logger = logging.getLogger(__name__)
+            client.enable_logger(logger)
         except:
-            print("[Error] MQTT initialized failed!")
+            logging.error("[Error] MQTT initialized failed!")
             traceback.print_exc()
             sys.exit(0)
 
     # infinite loop goes here
     while True:
-        print(">>>>>>>>>>>>>>>>>>>>")
+        logging.info(">>>>>>>>>>>>>>>>>>>>")
 
         # print current time stamp and sensor data
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-        print(st)
+        logging.info(st)
 
         # read sensor data from HTU21D sensor
         try:
             temp = round( htu.read_temperature(), 2 )
             humid = round( htu.read_humidity(), 2 )
-            print("Temperature: %.2f C" % temp)
-            print("Humidity: %.2f %%rH" % humid)
+            logging.info("Temperature: %.2f C" % temp)
+            logging.info("Humidity: %.2f %%rH" % humid)
         except:
-            print("[Error] HTU read failed!")
+            logging.error("[Error] HTU read failed!")
             continue
 
         # read sensor data from AM2306
@@ -119,10 +131,10 @@ if __name__ == "__main__":
             temp_out, humid_out = dht22.getDHTSensorData()
             temp_out = round(temp_out, 2)
             humid_out = round(humid_out, 2)
-            print("Temperature(outdoor): %.2f C" % temp_out)
-            print("Humidity(outdoor): %.2f %%rH" % humid_out)
+            logging.info("Temperature(outdoor): %.2f C" % temp_out)
+            logging.info("Humidity(outdoor): %.2f %%rH" % humid_out)
         except:
-            print("[Error] AM2306 read failed!")
+            logging.error("[Error] AM2306 read failed!")
             continue
 
         # read data from PMS7003
@@ -130,10 +142,10 @@ if __name__ == "__main__":
             reading = pms.read()
             pm2_5 = reading['pm2_5']
             pm10 = reading['pm10_0']
-            print("PM2.5: %d" % pm2_5)
-            print("PM10: %d" % pm10)
+            logging.info("PM2.5: %d" % pm2_5)
+            logging.info("PM10: %d" % pm10)
         except:
-            print("[Error] PMS7003 read failed!")
+            logging.error("[Error] PMS7003 read failed!")
             continue
 
         # report to MQTT
@@ -149,8 +161,6 @@ if __name__ == "__main__":
         # report to MySQL
         if mysql_cfg["enable"] == True:
             mysql_commit(sensor_id, temp, humid, temp_out, humid_out, mysql_cfg)
-
-        print("<<<<<<<<<<<<<<<<<<<< \n")
 
         # report once or periodically is defined by config 'report_only_once'
         if system_cfg["report_periodic"] == True:
