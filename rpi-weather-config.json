@@ -2,7 +2,7 @@
   "config":{
     "sensor_id": 1,
     "sensor_name": "node",
-    "log_on": true,
+    "log_to_file": true,
     "report_periodic": true,
     "report_interval_sec": 60
   },
