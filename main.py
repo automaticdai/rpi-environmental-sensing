@@ -20,7 +20,6 @@ import pymysql.cursors
 import paho.mqtt.client as mqtt
 import logging
 
-
 def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
     # Connect to the database
     try:
@@ -82,7 +81,7 @@ if __name__ == "__main__":
     except:
         print("[Error] HTU21D initialized failed!")
         traceback.print_exc()
-        sys.exit(0)
+        sys.exit(1)
 
     # create a PMS object
     try:
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     except:
         print("[Error] PMS7003 initialized failed!")
         traceback.print_exc()
-        sys.exit(0)
+        sys.exit(1)
 
     # connect to MQTT
     if mqtt_cfg["enable"] == True:
@@ -105,11 +104,15 @@ if __name__ == "__main__":
         except:
             logging.error("[Error] MQTT initialized failed!")
             traceback.print_exc()
-            sys.exit(0)
+            sys.exit(1)
 
     # infinite loop goes here
     while True:
         logging.info(">>>>>>>>>>>>>>>>>>>>")
+
+        # loop the MQTT client
+        if mqtt_cfg["enable"] == True:
+            client.loop()
 
         # print current time stamp and sensor data
         ts = time.time()
@@ -150,7 +153,6 @@ if __name__ == "__main__":
 
         # report to MQTT
         if mqtt_cfg["enable"] == True:
-            client.loop()
             client.publish(sensor_name + "/Timestamp", st)
             client.publish(sensor_name + "/Temp", temp)
             client.publish(sensor_name + "/Humid", humid)
@@ -170,5 +172,5 @@ if __name__ == "__main__":
             interval = max(int(system_cfg["report_interval_sec"] - ts_diff), 0)
             time.sleep(interval)
         else:
-            # break the while loop
-            break
+            # exit
+            sys.exit(0)

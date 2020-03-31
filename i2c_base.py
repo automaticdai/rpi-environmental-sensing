@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
 import io, fcntl
 I2C_SLAVE = 0x0703
 
@@ -10,11 +12,14 @@ class i2c(object):
       fcntl.ioctl(self.fr, I2C_SLAVE, slave_addr)
       fcntl.ioctl(self.fw, I2C_SLAVE, slave_addr)
 
+
    def write(self, bytes):
       self.fw.write(bytes)
 
+
    def read(self, bytes):
       return self.fr.read(bytes)
+
 
    def close(self):
       self.fw.close()

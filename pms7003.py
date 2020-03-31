@@ -17,7 +17,6 @@ import serial
 from collections import OrderedDict
 from pprint import pprint
 
-
 START_SEQ = bytes([0x42, 0x4d])
 FRAME_BYTES = 30
 
@@ -39,7 +38,6 @@ BYTES_MEANING = {
 
 VALUES = list(BYTES_MEANING.values())
 NO_VALUES = len(BYTES_MEANING) + 1
-
 
 class PMSSensorException(Exception):
     """

@@ -21,7 +21,6 @@ CMD_WRITE_USER_REG = b"\xE6"
 CMD_READ_USER_REG = b"\xE7"
 CMD_SOFT_RESET = b"\xFE"
 
-
 class HTUSensorException(Exception):
     pass
 
@@ -104,6 +103,6 @@ class HTU21D(object):
 
 # test code
 if __name__ == "__main__":
-    obj = htu21d.HTU21D()
+    obj = HTU21D()
     print("Temp: %s C" % obj.read_temperature())
     print("Humid: %s %% rH" % obj.read_humidity())
