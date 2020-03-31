@@ -109,10 +109,14 @@ if __name__ == "__main__":
     # infinite loop goes here
     while True:
         logging.info(">>>>>>>>>>>>>>>>>>>>")
+        print(".", end='')
 
         # loop the MQTT client
         if mqtt_cfg["enable"] == True:
-            client.loop()
+            try:
+                client.loop()
+            except:
+                traceback.print_exc()
 
         # print current time stamp and sensor data
         ts = time.time()
@@ -153,13 +157,16 @@ if __name__ == "__main__":
 
         # report to MQTT
         if mqtt_cfg["enable"] == True:
-            client.publish(sensor_name + "/Timestamp", st)
-            client.publish(sensor_name + "/Temp", temp)
-            client.publish(sensor_name + "/Humid", humid)
-            client.publish(sensor_name + "/Temp_out", temp_out)
-            client.publish(sensor_name + "/Humid_out", humid_out)
-            client.publish(sensor_name + "/PM2_5", pm2_5)
-            client.publish(sensor_name + "/PM10", pm10)
+            try:
+                client.publish(sensor_name + "/Timestamp", st)
+                client.publish(sensor_name + "/Temp", temp)
+                client.publish(sensor_name + "/Humid", humid)
+                client.publish(sensor_name + "/Temp_out", temp_out)
+                client.publish(sensor_name + "/Humid_out", humid_out)
+                client.publish(sensor_name + "/PM2_5", pm2_5)
+                client.publish(sensor_name + "/PM10", pm10)
+            except:
+                traceback.print_exec()
 
         # report to MySQL
         if mysql_cfg["enable"] == True:
