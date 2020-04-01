@@ -7,7 +7,7 @@ Yunfei Robotics Laboratory (http://www.yfrl.org)
 Version 1.0 (26 March 2020)
 """
 
-import sys, time, datetime, json
+import os, sys, time, datetime, json
 import traceback
 import htu21d
 import dht22
@@ -19,6 +19,7 @@ from pprint import pprint
 import pymysql.cursors
 import paho.mqtt.client as mqtt
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
     # Connect to the database
@@ -105,24 +106,19 @@ if __name__ == "__main__":
         # print configuration
         pprint(config)
 
+
+    # define a Handler that writes INFO messages to stdout
+    logging.basicConfig(level=logging.INFO,
+                        format='[%(asctime)s-%(levelname)s: %(message)s]',
+                        datefmt='%Y-%m-%d %H:%M:%S')
     if system_cfg["log_to_file"] == True:
-        # define a Handler that writes INFO messages to a log file
-        logging.basicConfig(level=logging.INFO,
-                            filename='log.txt',
-                            filemode='a',
-                            format='[%(asctime)s-%(levelname)s: %(message)s]',
-                            datefmt='%Y-%m-%d %H:%M:%S')
         # define a Handler which writes INFO messages or higher to the sys.stderr
-        console = logging.StreamHandler()
-        console.setLevel(logging.INFO)
+        handler = TimedRotatingFileHandler(
+            os.path.abspath(os.path.dirname(__file__)) + '/output.log', when="d", interval=1, backupCount=5)
+        handler.setLevel(logging.INFO)
         formatter = logging.Formatter('%(asctime)s-%(levelname)s: %(message)s')
-        console.setFormatter(formatter)
-        logging.getLogger('').addHandler(console)
-    else:
-        # define a Handler which writes INFO messages or higher to the sys.stderr
-        logging.basicConfig(level=logging.INFO,
-                            format='[%(asctime)s-%(levelname)s: %(message)s]',
-                            datefmt='%Y-%m-%d %H:%M:%S')
+        handler.setFormatter(formatter)
+        logging.getLogger('').addHandler(handler)
 
     # read sensor id & name
     sensor_id = system_cfg["sensor_id"]
