@@ -50,6 +50,49 @@ def mysql_commit(sensor_id, temp, humid, temp_ex, humid_ex, config):
         connection.close()
 
 
+flag_connected = True
+
+def _on_connect(client, userdata, message, rc):
+    """
+    Called when the broker responds to our connection request.
+
+    @param client:
+        the client instance for this callback
+    @param userdata:
+        the private user data as set in Client() or userdata_set()
+    @param message:
+        response message sent by the broker
+    @param rc:
+        the connection result
+    """
+    global flag_connected
+
+    if rc == 0:
+        errtext="Connection successful"
+    elif rc == 1:
+        errtext="Connection refused: Unacceptable protocol version"
+    elif rc == 2:
+        errtext="Connection refused: Identifier rejected"
+    elif rc == 3:
+        errtext="Connection refused: Server unavailable"
+    elif rc == 4:
+        errtext="Connection refused: Bad user name or password"
+    elif rc == 5:
+        errtext="Connection refused: Not authorized"
+    else:
+        errtext="Connection refused: Unknown reason"
+
+    flag_connected = True
+    logging.info("MQTT on_connect() returns rc={}: {}".format(rc, errtext))
+
+
+def _on_disconnect(client, userdata, rc):
+    global flag_connected
+
+    flag_connected = False
+    logging.info("MQTT on_disconnect() triggered!")
+
+
 if __name__ == "__main__":
     # load configs from .json file
     with open('/etc/rpi-weather-config.json') as config_file:
@@ -62,14 +105,24 @@ if __name__ == "__main__":
         # print configuration
         pprint(config)
 
-    # enable logger
-    LOG_FORMAT = '[%(asctime)s-%(levelname)s: %(message)s]'
-    LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
     if system_cfg["log_to_file"] == True:
-        logging.basicConfig(filename='log.txt', filemode='a', level=logging.INFO,
-                            format=LOG_FORMAT, datefmt=LOG_DATEFMT)
+        # define a Handler that writes INFO messages to a log file
+        logging.basicConfig(level=logging.INFO,
+                            filename='log.txt',
+                            filemode='a',
+                            format='[%(asctime)s-%(levelname)s: %(message)s]',
+                            datefmt='%Y-%m-%d %H:%M:%S')
+        # define a Handler which writes INFO messages or higher to the sys.stderr
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s-%(levelname)s: %(message)s')
+        console.setFormatter(formatter)
+        logging.getLogger('').addHandler(console)
     else:
-        logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt=LOG_DATEFMT)
+        # define a Handler which writes INFO messages or higher to the sys.stderr
+        logging.basicConfig(level=logging.INFO,
+                            format='[%(asctime)s-%(levelname)s: %(message)s]',
+                            datefmt='%Y-%m-%d %H:%M:%S')
 
     # read sensor id & name
     sensor_id = system_cfg["sensor_id"]
@@ -96,67 +149,76 @@ if __name__ == "__main__":
         mqtt_server = mqtt_cfg["server"]
         mqtt_port = mqtt_cfg["port"]
 
+        client = mqtt.Client()
+        client.on_connect = _on_connect
+        client.on_disconnect = _on_disconnect
         try:
-            client = mqtt.Client()
             client.connect(mqtt_server, mqtt_port, 60)
             logger = logging.getLogger(__name__)
             client.enable_logger(logger)
         except:
-            logging.error("[Error] MQTT initialized failed!")
-            traceback.print_exc()
+            logging.error("MQTT initialized failed!")
             sys.exit(1)
 
     # infinite loop goes here
     while True:
         logging.info(">>>>>>>>>>>>>>>>>>>>")
-        print(".", end='')
-
-        # loop the MQTT client
-        if mqtt_cfg["enable"] == True:
-            try:
-                client.loop()
-            except:
-                traceback.print_exc()
 
         # print current time stamp and sensor data
         ts = time.time()
         st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
         logging.info(st)
 
-        # read sensor data from HTU21D sensor
         try:
+            # read sensor data from HTU21D sensor
             temp = round( htu.read_temperature(), 2 )
             humid = round( htu.read_humidity(), 2 )
-            logging.info("Temperature: %.2f C" % temp)
-            logging.info("Humidity: %.2f %%rH" % humid)
-        except:
-            logging.error("[Error] HTU read failed!")
-            continue
 
-        # read sensor data from AM2306
-        try:
+            # read sensor data from AM2306
             temp_out, humid_out = dht22.getDHTSensorData()
             temp_out = round(temp_out, 2)
             humid_out = round(humid_out, 2)
-            logging.info("Temperature(outdoor): %.2f C" % temp_out)
-            logging.info("Humidity(outdoor): %.2f %%rH" % humid_out)
-        except:
-            logging.error("[Error] AM2306 read failed!")
-            continue
 
-        # read data from PMS7003
-        try:
+            # read data from PMS7003
             reading = pms.read()
             pm2_5 = reading['pm2_5']
             pm10 = reading['pm10_0']
+        except htu21d.HTUSensorException:
+            logging.error("HTU read failed!")
+            time.sleep(1)
+            continue
+        except dht22.DHTSensorException:
+            logging.error("AM2306 read failed!")
+            time.sleep(1)
+            continue
+        except pms7003.PMSSensorException:
+            logging.error("PMS7003 read failed!")
+            time.sleep(1)
+            continue
+        except:
+            logging.error("Unknown Exception!")
+            traceback.print_exec()
+            time.sleep(1)
+            continue
+        else:
+            logging.info("Temperature: %.2f C" % temp)
+            logging.info("Humidity: %.2f %%rH" % humid)
+            logging.info("Temperature(outdoor): %.2f C" % temp_out)
+            logging.info("Humidity(outdoor): %.2f %%rH" % humid_out)
             logging.info("PM2.5: %d" % pm2_5)
             logging.info("PM10: %d" % pm10)
-        except:
-            logging.error("[Error] PMS7003 read failed!")
-            continue
+        finally:
+            pass
 
         # report to MQTT
         if mqtt_cfg["enable"] == True:
+            if flag_connected == False:
+                try:
+                    # reconnect
+                    client.connect(mqtt_server, mqtt_port, 60)
+                    logging.info("MQTT reconnect triggered.")
+                except:
+                    logging.error("MQTT reconnect failed!")
             try:
                 client.publish(sensor_name + "/Timestamp", st)
                 client.publish(sensor_name + "/Temp", temp)
@@ -166,6 +228,7 @@ if __name__ == "__main__":
                 client.publish(sensor_name + "/PM2_5", pm2_5)
                 client.publish(sensor_name + "/PM10", pm10)
             except:
+                logging.error("MQTT communication error!")
                 traceback.print_exec()
 
         # report to MySQL
@@ -181,3 +244,6 @@ if __name__ == "__main__":
         else:
             # exit
             sys.exit(0)
+
+        # loop the MQTT client
+        client.loop()
